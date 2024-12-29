@@ -10,9 +10,10 @@ const Group = require("./models/Group");
 const app = express();
 app.use(cors());
 app.use(express.json());
+const mongoUri = process.env.MONGO_URI;
 
 // Connect to MongoDB
-mongoose.connect("mongodb://localhost:27017/collegeGroups", {
+mongoose.connect(mongoUri, {
   useNewUrlParser: true,
   useUnifiedTopology: true,
 });
