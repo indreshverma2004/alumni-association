@@ -6,14 +6,18 @@ const router = express.Router();
 
 // Middleware for authentication
 const authenticate = (req, res, next) => {
-  const token = req.headers.authorization?.split(" ")[1];
-  if (!token) return res.status(401).send({ message: "Unauthorized" });
+  const authHeader = req.headers.authorization;
+  if (!authHeader) {
+    return res.status(401).json({ message: "Unauthorized: No token provided" });
+  }
+
+  const token = authHeader.split(" ")[1];
   try {
-    const decoded = jwt.verify(token, "secretKey");
+    const decoded = jwt.verify(token, "secretKey"); // Replace "secretKey" with an environment variable for security
     req.userId = decoded.id;
     next();
-  } catch {
-    res.status(403).send({ message: "Invalid token" });
+  } catch (err) {
+    res.status(403).json({ message: "Invalid token", error: err.message });
   }
 };
 
@@ -21,24 +25,30 @@ const authenticate = (req, res, next) => {
 router.get("/", authenticate, async (req, res) => {
   try {
     const groups = await Group.find();
-    res.status(200).send(groups);
+    res.status(200).json(groups);
   } catch (err) {
-    res.status(500).send({ message: "Failed to fetch groups", error: err.message });
+    res.status(500).json({ message: "Failed to fetch groups", error: err.message });
   }
 });
 
 // Create a group
 router.post("/", authenticate, async (req, res) => {
   const { name } = req.body;
+  if (!name) {
+    return res.status(400).json({ message: "Group name is required" });
+  }
+
   try {
     const groupExists = await Group.findOne({ name });
-    if (groupExists) return res.status(400).send({ message: "Group already exists" });
+    if (groupExists) {
+      return res.status(400).json({ message: "Group already exists" });
+    }
 
     const group = new Group({ name });
     await group.save();
-    res.status(201).send(group);
+    res.status(201).json(group);
   } catch (err) {
-    res.status(500).send({ message: "Failed to create group", error: err.message });
+    res.status(500).json({ message: "Failed to create group", error: err.message });
   }
 });
 
@@ -46,28 +56,38 @@ router.post("/", authenticate, async (req, res) => {
 router.post("/:groupId/messages", authenticate, async (req, res) => {
   const { groupId } = req.params;
   const { content } = req.body;
+
+  if (!content) {
+    return res.status(400).json({ message: "Message content is required" });
+  }
+
   try {
     const group = await Group.findById(groupId);
-    if (!group) return res.status(404).send({ message: "Group not found" });
+    if (!group) {
+      return res.status(404).json({ message: "Group not found" });
+    }
 
-    group.messages.push({ content, createdAt: new Date() });
+    group.messages.push({ content, createdAt: new Date(), userId: req.userId });
     await group.save();
-    res.status(201).send({ message: "Message added successfully" });
+    res.status(201).json({ message: "Message added successfully", group });
   } catch (err) {
-    res.status(500).send({ message: "Failed to add message", error: err.message });
+    res.status(500).json({ message: "Failed to add message", error: err.message });
   }
 });
 
 // Fetch messages from a group
 router.get("/:groupId/messages", authenticate, async (req, res) => {
   const { groupId } = req.params;
+
   try {
     const group = await Group.findById(groupId);
-    if (!group) return res.status(404).send({ message: "Group not found" });
+    if (!group) {
+      return res.status(404).json({ message: "Group not found" });
+    }
 
-    res.status(200).send(group.messages);
+    res.status(200).json(group.messages);
   } catch (err) {
-    res.status(500).send({ message: "Failed to fetch messages", error: err.message });
+    res.status(500).json({ message: "Failed to fetch messages", error: err.message });
   }
 });
 

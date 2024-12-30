@@ -9,7 +9,7 @@ const Dashboard = () => {
     const fetchGroups = async () => {
       try {
         const token = localStorage.getItem("token");
-        const response = await axios.get("http://localhost:5000/groups", {
+        const response = await axios.get("http://localhost:5000/api/groups", {
           headers: { Authorization: `Bearer ${token}` }
         });
         setGroups(response.data);
@@ -24,7 +24,7 @@ const Dashboard = () => {
     try {
       const token = localStorage.getItem("token");
       await axios.post(
-        "http://localhost:5000/groups",
+        "http://localhost:5000/api/groups",
         { name: newGroup },
         { headers: { Authorization: `Bearer ${token}` } }
       );
