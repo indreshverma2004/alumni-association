@@ -2,10 +2,13 @@ const express = require("express");
 const mongoose = require("mongoose");
 const cors = require("cors");
 const cron = require("node-cron");
+require('dotenv').config();
+
 
 const userRoutes = require("./routes/userRoutes");
 const groupRoutes = require("./routes/groupRoutes");
 const Group = require("./models/Group");
+const { configDotenv } = require("dotenv");
 
 const app = express();
 app.use(cors());
