@@ -7,6 +7,7 @@ require('dotenv').config();
 
 const userRoutes = require("./routes/userRoutes");
 const groupRoutes = require("./routes/groupRoutes");
+const messageRoutes=require("./routes/messageRoutes");
 const Group = require("./models/Group");
 const { configDotenv } = require("dotenv");
 
@@ -24,6 +25,7 @@ mongoose.connect(mongoUri, {
 // Routes
 app.use("/api/users", userRoutes);
 app.use("/api/groups", groupRoutes);
+app.use("/api/messages",messageRoutes);
 
 // Message cleanup (every day at midnight)
 cron.schedule("0 0 * * *", async () => {

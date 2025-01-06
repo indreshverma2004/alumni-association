@@ -52,43 +52,4 @@ router.post("/", authenticate, async (req, res) => {
   }
 });
 
-// Post a message to a group
-router.post("/:groupId/messages", authenticate, async (req, res) => {
-  const { groupId } = req.params;
-  const { content } = req.body;
-
-  if (!content) {
-    return res.status(400).json({ message: "Message content is required" });
-  }
-
-  try {
-    const group = await Group.findById(groupId);
-    if (!group) {
-      return res.status(404).json({ message: "Group not found" });
-    }
-
-    group.messages.push({ content, createdAt: new Date(), userId: req.userId });
-    await group.save();
-    res.status(201).json({ message: "Message added successfully", group });
-  } catch (err) {
-    res.status(500).json({ message: "Failed to add message", error: err.message });
-  }
-});
-
-// Fetch messages from a group
-router.get("/:groupId/messages", authenticate, async (req, res) => {
-  const { groupId } = req.params;
-
-  try {
-    const group = await Group.findById(groupId);
-    if (!group) {
-      return res.status(404).json({ message: "Group not found" });
-    }
-
-    res.status(200).json(group.messages);
-  } catch (err) {
-    res.status(500).json({ message: "Failed to fetch messages", error: err.message });
-  }
-});
-
 module.exports = router;

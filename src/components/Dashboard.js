@@ -1,9 +1,11 @@
 import React, { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import axios from "axios";
 
 const Dashboard = () => {
   const [groups, setGroups] = useState([]);
   const [newGroup, setNewGroup] = useState("");
+  const navigate = useNavigate();
 
   useEffect(() => {
     const fetchGroups = async () => {
@@ -14,7 +16,7 @@ const Dashboard = () => {
         });
         setGroups(response.data);
       } catch (error) {
-        console.error(error.response.data.message);
+        console.error(error.response?.data?.message || error.message);
       }
     };
     fetchGroups();
@@ -23,24 +25,30 @@ const Dashboard = () => {
   const handleCreateGroup = async () => {
     try {
       const token = localStorage.getItem("token");
-      await axios.post(
+      const response = await axios.post(
         "http://localhost:5000/api/groups",
         { name: newGroup },
         { headers: { Authorization: `Bearer ${token}` } }
       );
-      setGroups([...groups, { name: newGroup }]);
+      setGroups([...groups, response.data]); // Add the newly created group to the list
       setNewGroup("");
     } catch (error) {
-      console.error(error.response.data.message);
+      console.error(error.response?.data?.message || error.message);
     }
+  };
+
+  const handleGroupClick = (groupId) => {
+    navigate(`/groups/${groupId}`);
   };
 
   return (
     <div>
       <h1>Groups</h1>
       <ul>
-        {groups.map((group, index) => (
-          <li key={index}>{group.name}</li>
+        {groups.map((group) => (
+          <li key={group._id} onClick={() => handleGroupClick(group._id)}>
+            {group.name}
+          </li>
         ))}
       </ul>
       <input
